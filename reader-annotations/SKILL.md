@@ -463,7 +463,7 @@ Test with Playwright and Chromium, serving the file over local HTTP, not just op
 7. No console errors and no horizontal overflow at 390 px.
 8. Take a screenshot and review the skin: Arial, grey buttons with a 2 px radius, white floating panels with a short shadow, list in ruled rows, white veil on the dialog. Check the contrast of button text (primary and danger) and of the grey metadata.
 
-Tested in desktop Chromium and in mobile emulation at 390 px. Not tested on real iPhones or iPads. The verification above is mandatory for every new page.
+Tested in desktop Chromium, in mobile emulation at 390 px and on a real iPhone. Not tested on iPad. The verification above is mandatory for every new page.
 
 ## Author
 

@@ -32,7 +32,7 @@ There is a sample page at [reader-annotations/example/index.html](example/index.
 
 - Annotations are personal and local. They are not shared between people and do not sync across devices on their own.
 - Clearing your browsing data deletes the annotations.
-- Tested in desktop Chromium and in mobile emulation. Not tested on real iPhones or iPads.
+- Tested in desktop Chromium and on iPhone. Not tested on iPad.
 - The skill is a single text file of instructions, with no scripts. You can read all of it before installing, which is good practice with any third-party skill.
 
 ## License
