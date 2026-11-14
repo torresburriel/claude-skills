@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reading with a pencil. reader-annotations example</title>
+<style>
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:#FFFFFF;color:#222222;font:13px/1.5 Arial,Helvetica,sans-serif}
+a{color:#1155CC;text-decoration:none}
+a:hover{text-decoration:underline}
+header.rd-bar{position:sticky;top:0;z-index:30;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 16px;background:#F5F5F5;border-bottom:1px solid #E5E5E5;font-size:11px;color:#666666}
+.rd-logo{font-size:16px;color:#DD4B39;font-weight:700;margin-right:auto}
+.rd-logo span{color:#666666;font-weight:400}
+.rd-wrap{display:flex;align-items:flex-start}
+nav.rd-side{display:none}
+nav.rd-side h2{font-size:11px;text-transform:none;color:#666666;margin:0;padding:4px 16px 8px;font-weight:700}
+nav.rd-side a{display:block;padding:4px 16px;color:#222222;font-size:13px}
+nav.rd-side a:hover{background:#EEEEEE;text-decoration:none}
+nav.rd-side a.rd-me{color:#DD4B39;font-weight:700;border-bottom:1px solid #E5E5E5;padding-bottom:10px;margin-bottom:6px}
+nav.rd-side a.rd-sub{padding-left:30px;color:#444444}
+main{min-width:0;flex:1;max-width:690px;padding:16px 16px 60px}
+.rd-entry-head{border-bottom:1px solid #E5E5E5;padding-bottom:12px;margin-bottom:4px}
+.rd-cat{font-size:11px;color:#666666;margin:0 0 4px}
+h1{font-size:22px;line-height:1.25;font-weight:700;color:#1155CC;margin:0 0 6px}
+.rd-by{font-size:12px;color:#666666;margin:0}
+.rd-by b{color:#008000;font-weight:400}
+h2{font-size:17px;font-weight:700;margin:0 0 10px;color:#222222}
+h3{font-size:15px;font-weight:700;margin:0 0 8px;color:#222222}
+section{border-bottom:1px solid #E5E5E5;padding:18px 0 8px}
+main p,main li,main td{font-size:15px;line-height:1.6}
+main p{margin:0 0 12px}
+main ul,main ol{margin:0 0 12px;padding-left:24px}
+main li{margin-bottom:6px}
+main li ul{margin-top:6px}
+.rd-lead p{color:#444444;font-size:15px}
+.rd-fig{border:1px solid #E5E5E5;background:#FAFAFA;padding:12px 14px;margin:0 0 14px}
+.rd-fig .rd-cap{font-size:12px;color:#666666;font-weight:700;margin:0 0 8px}
+.rd-fig .rd-note{font-size:12px;color:#666666;margin:0 0 8px}
+.rd-cols{display:grid;grid-template-columns:1fr;gap:4px 20px}
+.rd-scroll{overflow-x:auto;margin:0 0 14px;border:1px solid #E5E5E5}
+table{border-collapse:collapse;width:100%;min-width:620px}
+th,td{border:1px solid #E5E5E5;padding:6px 8px;vertical-align:top;text-align:left}
+th{background:#F5F5F5;font-size:12px;color:#444444}
+main td{font-size:13px;line-height:1.45}
+main td li{font-size:13px;line-height:1.45;margin-bottom:4px}
+main td ul{margin:0;padding-left:16px}
+.rd-refs li{font-size:13px;color:#444444}
+.rd-foot{font-size:11px;color:#666666;padding:14px 0}
+.rd-help{font-size:12px;color:#666666;margin:0 0 10px}
+@media (min-width:640px){.rd-cols{grid-template-columns:1fr 1fr}main{padding:16px 24px 60px}}
+@media (min-width:900px){nav.rd-side{display:block;position:sticky;top:44px;flex:none;width:240px;max-height:calc(100vh - 44px);overflow:auto;padding:14px 0;border-right:1px solid #E5E5E5}}
+@media (max-width:600px){main p,main li{font-size:16px}main td,main td li{font-size:13px}}
+
+/* annotations, Reader skin */
+:root{--an-ink:#222222;--an-paper:#FFFFFF;--an-accent:#4D90FE;--an-primary:#1155CC;--an-danger:#C5221F;--an-rule:#E5E5E5;--an-border:#DCDCDC;--an-soft:#F5F5F5;--an-muted:#666666;--an-highlight:#FFF3A8;--an-important:#FFC773;--an-important-rule:#DD4B39;--an-font:Arial,Helvetica,sans-serif}
+mark{background:none;color:inherit;cursor:pointer}
+mark.h-highlight{background:var(--an-highlight);color:var(--an-ink)}
+mark.h-important{background:var(--an-important);color:var(--an-ink);box-shadow:inset 0 -2px 0 var(--an-important-rule)}
+mark.has-note{outline:1px dotted var(--an-muted);outline-offset:1px}
+mark.flash{animation:anfl 1.2s}
+@keyframes anfl{0%,60%{outline:2px solid var(--an-accent)}100%{outline:2px solid transparent}}
+[data-an-dark] mark.h-highlight,[data-an-dark] mark.h-important{color:var(--an-ink)}
+[data-an-dark] mark.has-note{outline-color:var(--an-paper)}
+.selbar,.pop{position:absolute;z-index:40;background:var(--an-paper);color:var(--an-ink);border:1px solid #CCCCCC;box-shadow:0 2px 4px rgba(0,0,0,.2);padding:6px;display:none;gap:6px;align-items:center;flex-wrap:wrap;font:13px/1.4 var(--an-font)}
+.selbar.on{display:flex}
+.pop{flex-direction:column;align-items:stretch;width:290px;padding:10px}
+.pop.on{display:flex}
+.pop label{color:var(--an-muted);font-size:11px;font-weight:700;margin-top:8px}
+.pop__row{display:flex;gap:6px;flex-wrap:wrap}
+.selbar button,.pop button,.an-modal button,.an-filters button,.annlist button,#btnData{font:700 11px/25px var(--an-font);cursor:pointer;border:1px solid var(--an-border);border-radius:2px;background:var(--an-soft);color:#444444;padding:0 8px;min-height:27px}
+.selbar button:hover,.pop button:hover,.an-modal button:hover,.an-filters button:hover,.annlist button:hover,#btnData:hover{border-color:#C6C6C6;color:var(--an-ink);box-shadow:0 1px 1px rgba(0,0,0,.1)}
+.selbar button:focus-visible,.pop button:focus-visible,.an-modal button:focus-visible,.an-filters button:focus-visible,.annlist button:focus-visible,#btnData:focus-visible{outline:2px solid var(--an-accent);outline-offset:1px}
+.an-primary{background:var(--an-primary)!important;border-color:var(--an-primary)!important;color:var(--an-paper)!important}
+.pop textarea,.an-modal textarea,#pad{width:100%;box-sizing:border-box;font:13px/1.45 var(--an-font);padding:6px 8px;border:1px solid #D9D9D9;border-top-color:#C0C0C0;background:var(--an-paper);color:var(--an-ink);resize:vertical}
+.pop textarea:focus,.an-modal textarea:focus,#pad:focus{outline:none;border-color:var(--an-accent);box-shadow:inset 0 1px 2px rgba(0,0,0,.2)}
+.chip--highlight{background:var(--an-highlight)!important;color:var(--an-ink)!important}
+.chip--important{background:var(--an-important)!important;color:var(--an-ink)!important;box-shadow:inset 0 -3px 0 var(--an-important-rule)!important}
+.chip.sel{outline:2px solid var(--an-accent);outline-offset:1px}
+.annlist{list-style:none;padding:0!important;margin:8px 0!important;border-top:1px solid var(--an-rule);font:13px/1.45 var(--an-font)}
+.annlist li{border-bottom:1px solid var(--an-rule);border-left:3px solid transparent;background:var(--an-paper);padding:8px 10px;margin:0;font-size:13px;line-height:1.45}
+.annlist li:hover{background:#FAFAFA}
+.annlist li.t-highlight{border-left-color:#E8C400}.annlist li.t-important{border-left-color:var(--an-important-rule)}
+.annlist .quote{color:var(--an-primary);font-weight:700}
+.annlist .n{margin-top:4px;color:var(--an-ink)}
+.annlist .meta{font-size:11px;color:var(--an-muted);margin-top:6px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.an-filters{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.an-filters button.sel{background:#EEEEEE;border-color:#CCCCCC;color:var(--an-ink);box-shadow:inset 0 1px 2px rgba(0,0,0,.1)}
+#status{font:11px var(--an-font);color:var(--an-muted)}
+.an-modal{position:fixed;inset:0;z-index:60;background:rgba(255,255,255,.75);display:none;align-items:center;justify-content:center;padding:16px;font:13px/1.5 var(--an-font)}
+.an-modal.on{display:flex}
+.an-modal__box{background:var(--an-paper);color:var(--an-ink);border:1px solid #ACACAC;box-shadow:0 4px 16px rgba(0,0,0,.2);padding:24px;width:min(680px,100%);max-height:90vh;overflow:auto;box-sizing:border-box}
+.an-modal__box h2{font-size:16px;font-weight:400;margin:0 0 12px}
+.an-modal__row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.an-danger{color:var(--an-danger)!important}
+.an-msg{font-size:11px;color:var(--an-muted);min-height:1.2em}
+@media (pointer:coarse){.selbar button,.pop button,.an-modal button,.an-filters button,.annlist button,#btnData{min-height:40px;line-height:38px;padding:0 12px;font-size:13px}}
+@media print{.selbar,.pop,.an-modal,.an-filters,header.rd-bar,nav.rd-side{display:none!important}mark{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<header class="rd-bar">
+  <div class="rd-logo">Reader</div>
+  <span id="status"></span>
+  <a href="#annotations">My annotations</a>
+  <button type="button" id="btnData">Copy and transfer</button>
+</header>
+<div class="rd-wrap">
+<nav class="rd-side" aria-label="Contents">
+  <a class="rd-me" href="#annotations">My annotations</a>
+  <h2>Sections</h2>
+  <a href="#s1">Reading with a pencil</a>
+  <a href="#s2">What deserves a mark</a>
+  <a href="#s3">Going back to your marks</a>
+</nav>
+<main>
+<div class="rd-entry-head">
+  <p class="rd-cat">Example</p>
+  <h1>Reading with a pencil</h1>
+  <p class="rd-by">from <b>reader-annotations</b>, demo text</p>
+</div>
+<section id="s1" data-title="Reading with a pencil">
+<h2>Reading with a pencil</h2>
+<p>Whoever reads with a pencil in hand reads differently. Marking a sentence forces you to decide that the sentence matters, and that small decision is what turns reading into work. <strong>A text without marks is forgotten sooner</strong> than one where we have left a trace.</p>
+<p>This page is an example. Select any fragment and a bar will appear with three actions: highlight, mark as important or add a note.</p>
+</section>
+<section id="s2" data-title="What deserves a mark">
+<h2>What deserves a mark</h2>
+<p>Not everything deserves the same treatment. Some sentences are worth being able to find again, and a few others, very few, carry the meaning of the whole document.</p>
+<ul>
+<li>The yellow highlight is for what you want to find again.</li>
+<li>The important mark is reserved for what you cannot afford to forget.</li>
+<li>The note captures what the text makes you think, which is not always what the text says.</li>
+</ul>
+</section>
+<section id="s3" data-title="Going back to your marks">
+<h2>Going back to your marks</h2>
+<p>Marks are worth as much as the review. At the end of the page there is a list with everything you have highlighted, with filters and a button that takes you back to the exact spot in the text.</p>
+<p>Everything is saved in this browser. If you want to take it to another device, use the copy and transfer button.</p>
+</section>
+<section id="annotations" data-title="My annotations" data-noannot>
+<h2>My annotations</h2>
+<p class="rd-help">Select any text to highlight it. Tap a mark to change its type, add a note or delete it.</p>
+<div class="an-filters" id="filters">
+  <button type="button" data-f="all" class="sel">All</button>
+  <button type="button" data-f="highlight">Highlighted</button>
+  <button type="button" data-f="important">Important</button>
+  <button type="button" data-f="note">With note</button>
+</div>
+<ul class="annlist" id="annlist"></ul>
+<h3 style="margin-top:18px">Notepad</h3>
+<textarea id="pad" rows="8" aria-label="Notepad" placeholder="Free-form notes"></textarea>
+</section>
+</main>
+</div>
+
+<div class="selbar" id="selbar" role="toolbar" aria-label="Highlight selection">
+  <button type="button" class="chip chip--highlight" data-t="highlight">Highlight</button>
+  <button type="button" class="chip chip--important" data-t="important">Important</button>
+  <button type="button" data-t="highlight" data-note="1">+ Note</button>
+</div>
+<div class="pop" id="pop" role="dialog" aria-label="Edit highlight">
+  <div class="pop__row" id="popTypes">
+    <button type="button" class="chip chip--highlight" data-t="highlight">Highlighted</button>
+    <button type="button" class="chip chip--important" data-t="important">Important</button>
+  </div>
+  <label for="popNote">Note</label>
+  <textarea id="popNote" rows="4" placeholder="Write your note"></textarea>
+  <div class="pop__row" style="margin-top:8px;justify-content:space-between">
+    <button type="button" id="popDel" class="an-danger">Delete</button>
+    <button type="button" id="popClose" class="an-primary">Done</button>
+  </div>
+</div>
+<div class="an-modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalT">
+  <div class="an-modal__box">
+    <h2 id="modalT">Copy and transfer your annotations</h2>
+    <p>Your annotations live in this browser's local storage. To take them to another device, copy the text below and paste it right here on the other one.</p>
+    <textarea id="dataArea" rows="9" aria-label="Annotation data"></textarea>
+    <div class="an-modal__row">
+      <button type="button" id="mCopy" class="an-primary">Copy data</button>
+      <button type="button" id="mText">View as readable text</button>
+      <button type="button" id="mImport">Import pasted data</button>
+    </div>
+    <p class="an-msg" id="mMsg"></p>
+    <div class="an-modal__row" style="justify-content:space-between">
+      <button type="button" id="mWipe" class="an-danger">Delete all</button>
+      <button type="button" id="mClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var CFG={
+    key:'example-reading-with-a-pencil-v1',
+    root:'main',
+    blockSel:'p, li, td',
+    types:{highlight:'Highlighted',important:'Important'},
+    title:'Annotations: Reading with a pencil'
+  };
+  var KEY=CFG.key, SEL=CFG.blockSel, TYPES=CFG.types, NL=String.fromCharCode(10);
+  var state={hl:[],pad:''}, storageOK=true, filter='all', current=null, wipeArmed=false;
+  var $=function(id){return document.getElementById(id)};
+  var each=function(list,fn){Array.prototype.forEach.call(list,fn)};
+  var main=document.querySelector(CFG.root), selbar=$('selbar'), pop=$('pop'), modal=$('modal'), pad=$('pad');
+
+  function load(){
+    try{
+      localStorage.setItem(KEY+'-t','1'); localStorage.removeItem(KEY+'-t');
+      var s=localStorage.getItem(KEY);
+      if(s){var d=JSON.parse(s); if(d&&Array.isArray(d.hl)){state.hl=d.hl; state.pad=d.pad||'';}}
+    }catch(e){storageOK=false}
+  }
+  function save(){
+    try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){storageOK=false}
+    status();
+  }
+  function status(){
+    var el=$('status'); if(!el) return;
+    var n=state.hl.length;
+    el.textContent=(n===1?'1 annotation':n+' annotations')+' · '+(storageOK?'saved on this device':'this browser does not allow saving');
+  }
+
+  var blocks={};
+  each(main.querySelectorAll('section[id]'),function(sec){
+    if(sec.hasAttribute('data-noannot')) return;
+    var i=0;
+    each(sec.querySelectorAll(SEL),function(el){
+      if(el.querySelector(SEL)||el.closest('[data-noannot]')) return;
+      var id=sec.id+':'+(i++);
+      el.setAttribute('data-b',id);
+      blocks[id]={el:el,html:el.innerHTML,title:sec.getAttribute('data-title')||sec.id};
+    });
+  });
+
+  function textNodes(el){
+    var w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT), out=[], pos=0, n;
+    while((n=w.nextNode())){out.push([n,pos]); pos+=n.nodeValue.length;}
+    return out;
+  }
+  function wrap(el,h){
+    textNodes(el).forEach(function(p){
+      var node=p[0], ns=p[1], ne=ns+node.nodeValue.length;
+      var a=Math.max(h.s,ns), b=Math.min(h.e,ne);
+      if(b<=a) return;
+      var r=document.createRange(); r.setStart(node,a-ns); r.setEnd(node,b-ns);
+      var m=document.createElement('mark');
+      m.className='h-'+h.t+(h.note?' has-note':'');
+      m.setAttribute('data-h',h.id);
+      if(h.note) m.title=h.note;
+      r.surroundContents(m);
+    });
+  }
+  function anchor(h){
+    var b=blocks[h.b]; if(!b) return false;
+    var tmp=document.createElement('div'); tmp.innerHTML=b.html;
+    var txt=tmp.textContent;
+    if(txt.slice(h.s,h.e)===h.text) return true;
+    var i=txt.indexOf(h.text);
+    if(i<0) return false;
+    h.s=i; h.e=i+h.text.length; return true;
+  }
+  function renderBlock(id){
+    var b=blocks[id]; if(!b) return;
+    b.el.innerHTML=b.html;
+    state.hl.filter(function(h){return h.b===id}).sort(function(x,y){return x.s-y.s}).forEach(function(h){
+      h.orphan=!anchor(h);
+      if(!h.orphan) wrap(b.el,h);
+    });
+  }
+  function renderAll(){Object.keys(blocks).forEach(renderBlock); state.hl.forEach(function(h){if(!blocks[h.b]) h.orphan=true;});}
+
+  function offsetIn(el,node,o){var r=document.createRange(); r.selectNodeContents(el); r.setEnd(node,o); return r.toString().length;}
+  function isSpace(c){return c.trim()===''}
+  function selectionRange(){
+    var s=window.getSelection();
+    if(!s||s.rangeCount===0||s.isCollapsed) return null;
+    var r=s.getRangeAt(0);
+    if(!r.intersectsNode(main)) return null;
+    if(!String(s).trim()) return null;
+    return r;
+  }
+  function blocksIn(r){return Object.keys(blocks).filter(function(id){return r.intersectsNode(blocks[id].el)});}
+  function create(type,withNote){
+    var r=selectionRange(); if(!r) return;
+    var made=[];
+    blocksIn(r).forEach(function(id){
+      var el=blocks[id].el, full=el.textContent;
+      var s=el.contains(r.startContainer)?offsetIn(el,r.startContainer,r.startOffset):0;
+      var e=el.contains(r.endContainer)?offsetIn(el,r.endContainer,r.endOffset):full.length;
+      while(s<e&&isSpace(full.charAt(s))) s++;
+      while(e>s&&isSpace(full.charAt(e-1))) e--;
+      if(e<=s) return;
+      var h={id:'h'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),b:id,s:s,e:e,t:type,text:full.slice(s,e),note:'',ts:Date.now()};
+      state.hl.push(h); made.push(h);
+    });
+    window.getSelection().removeAllRanges();
+    hide(selbar);
+    made.forEach(function(h){renderBlock(h.b)});
+    save(); list();
+    if(withNote&&made.length){var m=main.querySelector('mark[data-h="'+made[0].id+'"]'); if(m) openPop(made[0].id,m,true);}
+  }
+
+  function place(box,rect){
+    box.classList.add('on');
+    var w=box.offsetWidth, sx=window.pageXOffset, sy=window.pageYOffset;
+    var x=rect.left+sx+rect.width/2-w/2;
+    x=Math.max(sx+8,Math.min(x,sx+document.documentElement.clientWidth-w-8));
+    box.style.left=x+'px'; box.style.top=(rect.bottom+sy+10)+'px';
+  }
+  function hide(box){box.classList.remove('on')}
+  function inUI(t){return selbar.contains(t)||pop.contains(t)||modal.contains(t)}
+  function onSelect(){
+    setTimeout(function(){
+      var r=selectionRange();
+      if(!r||!blocksIn(r).length){hide(selbar);return;}
+      var rects=r.getClientRects(); if(!rects.length){hide(selbar);return;}
+      place(selbar,rects[rects.length-1]);
+    },10);
+  }
+  document.addEventListener('mouseup',function(e){if(!inUI(e.target)) onSelect();});
+  document.addEventListener('touchend',function(e){if(!inUI(e.target)) setTimeout(onSelect,250);});
+  document.addEventListener('keyup',function(e){if(e.shiftKey||e.key==='Shift') onSelect(); if(e.key==='Escape'){hide(pop);hide(selbar);closeModal();}});
+  document.addEventListener('selectionchange',function(){var s=window.getSelection(); if(!s||s.isCollapsed) hide(selbar);});
+  selbar.addEventListener('mousedown',function(e){e.preventDefault()});
+  selbar.addEventListener('click',function(e){var b=e.target.closest('button'); if(b) create(b.getAttribute('data-t'),!!b.getAttribute('data-note'));});
+
+  function find(id){for(var i=0;i<state.hl.length;i++) if(state.hl[i].id===id) return state.hl[i]; return null;}
+  function openPop(id,markEl,focus){
+    var h=find(id); if(!h) return;
+    current=id;
+    $('popNote').value=h.note||'';
+    each($('popTypes').children,function(b){b.classList.toggle('sel',b.getAttribute('data-t')===h.t)});
+    place(pop,markEl.getBoundingClientRect());
+    if(focus) $('popNote').focus();
+  }
+  main.addEventListener('click',function(e){
+    var m=e.target.closest('mark[data-h]');
+    if(!m){hide(pop);return;}
+    var s=window.getSelection(); if(s&&!s.isCollapsed) return;
+    openPop(m.getAttribute('data-h'),m,false);
+  });
+  $('popTypes').addEventListener('click',function(e){
+    var b=e.target.closest('button'), h=find(current); if(!b||!h) return;
+    h.t=b.getAttribute('data-t'); renderBlock(h.b); save(); list();
+    each($('popTypes').children,function(x){x.classList.toggle('sel',x===b)});
+  });
+  $('popNote').addEventListener('input',function(){
+    var h=find(current); if(!h) return;
+    h.note=this.value;
+    each(main.querySelectorAll('mark[data-h="'+h.id+'"]'),function(m){m.classList.toggle('has-note',!!h.note); m.title=h.note;});
+    save(); list();
+  });
+  $('popDel').addEventListener('click',function(){
+    var h=find(current); if(!h) return;
+    state.hl=state.hl.filter(function(x){return x.id!==h.id});
+    hide(pop); renderBlock(h.b); save(); list();
+  });
+  $('popClose').addEventListener('click',function(){hide(pop)});
+
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function sorted(){var order=Object.keys(blocks); return state.hl.slice().sort(function(a,b){return (order.indexOf(a.b)-order.indexOf(b.b))||(a.s-b.s)});}
+  function list(){
+    var ul=$('annlist'); if(!ul) return;
+    var items=sorted().filter(function(h){return filter==='all'||(filter==='note'?!!h.note:h.t===filter)});
+    if(!items.length){ul.innerHTML='<li>'+(state.hl.length?'No annotations of this type.':'Nothing highlighted yet. Select some text to start.')+'</li>';return;}
+    ul.innerHTML=items.map(function(h){
+      var b=blocks[h.b], q=h.text.length>180?h.text.slice(0,180)+'…':h.text;
+      return '<li class="t-'+h.t+'"><div class="quote">“'+esc(q)+'”</div>'+(h.note?'<div class="n">'+esc(h.note).split(NL).join('<br>')+'</div>':'')+
+        '<div class="meta"><span>'+TYPES[h.t]+' · '+esc(b?b.title:'section removed')+(h.orphan?' · not found in the current text':'')+'</span>'+
+        (h.orphan?'':'<button type="button" data-go="'+h.id+'">Go to text</button>')+'<button type="button" data-del="'+h.id+'" class="an-danger">Delete</button></div></li>';
+    }).join('');
+  }
+  if($('annlist')) $('annlist').addEventListener('click',function(e){
+    var go=e.target.getAttribute('data-go'), del=e.target.getAttribute('data-del');
+    if(go){var m=main.querySelector('mark[data-h="'+go+'"]'); if(m){m.scrollIntoView({block:'center'}); m.classList.add('flash'); setTimeout(function(){m.classList.remove('flash')},1300);}}
+    if(del){var h=find(del); state.hl=state.hl.filter(function(x){return x.id!==del}); if(h) renderBlock(h.b); save(); list();}
+  });
+  if($('filters')) $('filters').addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b) return;
+    filter=b.getAttribute('data-f');
+    each(this.children,function(x){x.classList.toggle('sel',x===b)});
+    list();
+  });
+
+  var padT;
+  if(pad) pad.addEventListener('input',function(){state.pad=pad.value; clearTimeout(padT); padT=setTimeout(save,300);});
+
+  function asText(){
+    var out=[CFG.title,''];
+    sorted().forEach(function(h){
+      out.push('['+TYPES[h.t]+'] '+(blocks[h.b]?blocks[h.b].title:'')+': “'+h.text+'”'+(h.note?NL+'   Note: '+h.note:''));
+    });
+    if(state.pad){out.push('','Notepad:',state.pad);}
+    return out.join(NL);
+  }
+  function openModal(){
+    $('dataArea').value=JSON.stringify({v:1,hl:state.hl.map(function(h){return {id:h.id,b:h.b,s:h.s,e:h.e,t:h.t,text:h.text,note:h.note,ts:h.ts}}),pad:state.pad});
+    $('mMsg').textContent=''; wipeArmed=false; $('mWipe').textContent='Delete all'; modal.classList.add('on');
+  }
+  function closeModal(){modal.classList.remove('on')}
+  if($('btnData')) $('btnData').addEventListener('click',openModal);
+  $('mClose').addEventListener('click',closeModal);
+  modal.addEventListener('click',function(e){if(e.target===modal) closeModal()});
+  $('mCopy').addEventListener('click',function(){
+    var ta=$('dataArea'); ta.focus(); ta.select();
+    var done=function(ok){$('mMsg').textContent=ok?'Copied to clipboard.':'Could not copy. The text is selected: copy it manually.'};
+    try{navigator.clipboard.writeText(ta.value).then(function(){done(true)},function(){done(false)})}catch(e){done(false)}
+  });
+  $('mText').addEventListener('click',function(){$('dataArea').value=asText(); $('mMsg').textContent='Text view. This view cannot be imported.';});
+  $('mImport').addEventListener('click',function(){
+    try{
+      var d=JSON.parse($('dataArea').value);
+      if(!d||!Array.isArray(d.hl)) throw 0;
+      var ok=d.hl.filter(function(h){return h&&typeof h.b==='string'&&typeof h.s==='number'&&typeof h.e==='number'&&TYPES[h.t]&&typeof h.text==='string'});
+      var have={}; state.hl.forEach(function(h){have[h.id]=1});
+      var add=ok.filter(function(h){return !have[h.id]}).map(function(h){return {id:String(h.id),b:h.b,s:h.s,e:h.e,t:h.t,text:h.text,note:String(h.note||''),ts:h.ts||Date.now()}});
+      state.hl=state.hl.concat(add);
+      if(typeof d.pad==='string'&&d.pad&&!state.pad){state.pad=d.pad; if(pad) pad.value=d.pad;}
+      renderAll(); save(); list();
+      $('mMsg').textContent='Imported '+add.length+' new annotations.';
+    }catch(e){$('mMsg').textContent='The pasted text is not valid annotation data.';}
+  });
+  $('mWipe').addEventListener('click',function(){
+    if(!wipeArmed){wipeArmed=true; this.textContent='Press again to confirm'; return;}
+    state={hl:[],pad:''}; if(pad) pad.value=''; renderAll(); save(); list(); closeModal();
+  });
+
+  load(); if(pad) pad.value=state.pad; renderAll(); list(); status();
+})();
+</script>
+</body>
+</html>
